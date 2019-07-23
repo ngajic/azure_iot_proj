@@ -1,3 +1,16 @@
+//*************//
+'use strict';
+
+var Client = require('azure-iothub').Client;
+var Message = require('azure-iot-common').Message;
+
+var connectionString = 'HostName=gajicnenad-hub1.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=NridmVId7FBNr1IJkFnQZCNhdqbHxpZjo9rSVvYsR/I=';
+var targetDevice1 = 'RaspberryPI1';
+var targetDevice2 = 'ESP32';
+
+var serviceClient = Client.fromConnectionString(connectionString);
+//*************//
+
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -17,12 +30,42 @@ app.use((req, res /* , next */) => {
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+function printResultFor(op) {
+  return function printResult(err, res) {
+    if (err) console.log(op + ' error: ' + err.toString());
+    if (res) console.log(op + ' status: ' + res.constructor.name);
+  };
+}
+
+function receiveFeedback(err, receiver){
+  receiver.on('message', function (msg) {
+    console.log('Feedback message:')
+    console.log(msg.getData().toString('utf-8'));
+  });
+}
+
 wss.broadcast = (data) => {
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       try {
         console.log(`Broadcasting data ${data}`);
         client.send(data);
+        // Part of code which is sending message to all devices about calculated temperature
+        serviceClient.open(function (err) {
+          if (err) {
+            console.error('Could not connect: ' + err.message);
+          } else {
+            console.log('Service client connected');
+            serviceClient.getFeedbackReceiver(receiveFeedback);
+            var message = new Message('Cloud to device message.');
+            message.ack = 'full';
+            message.messageId = "My Message ID";
+            console.log('Sending message: ' + message.getData());
+            serviceClient.send(targetDevice1, message, printResultFor('send'));
+            serviceClient.send(targetDevice2, message, printResultFor('send'));
+          }
+        });
+        // ******************* //
       } catch (e) {
         console.error(e);
       }

@@ -15,8 +15,8 @@
             "sourceMaps": true,
             "env": {
                 "NODE_ENV": "local",
-                "IotHubConnectionString": "",
-                "EventHubConsumerGroup": "monitoring"
+                "IotHubConnectionString": "HostName=gajicnenad-hub1.azure-devices.net;SharedAccessKeyName=service;SharedAccessKey=0sQ7t60RikGpv0Kd49W16lZ2cbPEEKtQ8xIXaNdIqDk=",
+                "EventHubConsumerGroup": "iothubconsumergroup1"
             }
         }
     ]
