@@ -40,21 +40,6 @@ $(document).ready(() => {
       }
     }
   }
-//**************************//
-  function printResultFor(op) {
-    return function printResult(err, res) {
-      if (err) console.log(op + ' error: ' + err.toString());
-      if (res) console.log(op + ' status: ' + res.constructor.name);
-    };
-  }
-
-  function receiveFeedback(err, receiver){
-    receiver.on('message', function (msg) {
-      console.log('Feedback message:')
-      console.log(msg.getData().toString('utf-8'));
-    });
-  }
-  //**************************//
 
   // All the devices in the list (those that have been sending telemetry)
   class TrackedDevices {
@@ -220,19 +205,19 @@ $(document).ready(() => {
       if (existingDeviceData) {
         // Calculating mean value of existing device
 
-        existingDeviceData.mean = 0;
-        for(let i=49; i>0; --i){
-          existingDeviceData.mean = existingDeviceData.mean + existingDeviceData.temperatureData[i] ;
-        }
-        existingDeviceData.mean = existingDeviceData.mean + messageData.IotData.temperature;
-        existingDeviceData.mean = existingDeviceData.mean/existingDeviceData.temperatureData.length;
+        existingDeviceData.mean = messageData.mean;
+        // for(let i=49; i>0; --i){
+        //   existingDeviceData.mean = existingDeviceData.mean + existingDeviceData.temperatureData[i] ;
+        // }
+        // existingDeviceData.mean = existingDeviceData.mean + messageData.IotData.temperature;
+        // existingDeviceData.mean = existingDeviceData.mean/existingDeviceData.temperatureData.length;
         // Calculating variance of existing device
-        existingDeviceData.variance = 0;
-        for(let i=49; i>0; --i){
-          existingDeviceData.variance = existingDeviceData.variance + Math.pow((existingDeviceData.temperatureData[i]-existingDeviceData.mean),2);
-        }
-        existingDeviceData.variance = existingDeviceData.variance + Math.pow((messageData.IotData.temperature-existingDeviceData.mean),2);
-        existingDeviceData.variance = existingDeviceData.variance/existingDeviceData.temperatureData.length;
+        // existingDeviceData.variance = 0;
+        // for(let i=49; i>0; --i){
+        //   existingDeviceData.variance = existingDeviceData.variance + Math.pow((existingDeviceData.temperatureData[i]-existingDeviceData.mean),2);
+        // }
+        // existingDeviceData.variance = existingDeviceData.variance + Math.pow((messageData.IotData.temperature-existingDeviceData.mean),2);
+        existingDeviceData.variance = messageData.variance;
 
         existingDeviceData.lastTemperature = messageData.IotData.temperature; // cuva se poslednja temperatura
         // poslednja temperatura se dodaje u niz kada se dobije poruka od poslednjeg dodatog uredjaja
@@ -243,25 +228,25 @@ $(document).ready(() => {
         // takodje se tada racuna temperatura u zavisnosti od varijanse uredjaja
         if(trackedDevices.devices[trackedDevices.devices.length - 1].deviceId === existingDeviceData.deviceId){
           // Calculating weight...
-        var help = 0;
-        for(let i=0; i<trackedDevices.devices.length; ++i){
-          if(trackedDevices.devices[i].variance === 0){
-            trackedDevices.devices[i].variance = 0.1;
-          }
-          help = help + 1/trackedDevices.devices[i].variance;
-        }
-        for(let i=0; i<trackedDevices.devices.length; ++i){
-          if(trackedDevices.devices[i].variance === 0){
-            trackedDevices.devices[i].variance = 0.1;
-          }
-          trackedDevices.devices[i].weight = 1/(trackedDevices.devices[i].variance*help);
-        }
-        var calcTmp = 0;
+        // var help = 0;
+        // for(let i=0; i<trackedDevices.devices.length; ++i){
+        //   if(trackedDevices.devices[i].variance === 0){
+        //     trackedDevices.devices[i].variance = 0.1;
+        //   }
+        //   help = help + 1/trackedDevices.devices[i].variance;
+        // }
+        // for(let i=0; i<trackedDevices.devices.length; ++i){
+        //   if(trackedDevices.devices[i].variance === 0){
+        //     trackedDevices.devices[i].variance = 0.1;
+        //   }
+        //   trackedDevices.devices[i].weight = 1/(trackedDevices.devices[i].variance*help);
+        // }
+        // var calcTmp = 0;
+        // for(let i = 0; i<trackedDevices.devices.length; ++i){
+        //     calcTmp = calcTmp + trackedDevices.devices[i].weight*trackedDevices.devices[i].lastTemperature;
+        //   }
         for(let i = 0; i<trackedDevices.devices.length; ++i){
-            calcTmp = calcTmp + trackedDevices.devices[i].weight*trackedDevices.devices[i].lastTemperature;
-          }
-        for(let i = 0; i<trackedDevices.devices.length; ++i){
-            trackedDevices.devices[i].addData(messageData.MessageDate, trackedDevices.devices[i].lastTemperature, calcTmp)
+            trackedDevices.devices[i].addData(messageData.MessageDate, trackedDevices.devices[i].lastTemperature, messageData.calcTmp)
           }
           // existingDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, calcTmp);
         }
