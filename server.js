@@ -37,6 +37,8 @@ class DeviceData {
     this.timeData = new Array(this.maxLen);
     this.temperatureData = new Array(this.maxLen);
     this.calcTemperatureData = new Array(this.maxLen);
+    this.longitude = 0;
+    this.latitude = 0;
     this.mean = 0;
     this.variance = 0;
     this.weight = 0;
@@ -161,9 +163,40 @@ wss.broadcast = (message) => {
            
   
         } else {
-          const newDeviceData = new DeviceData(messageData.DeviceId);
-          trackedDevices.devices.push(newDeviceData);
-          newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
+
+          // AKO JE U PITANJU NOVI UREDJAJ POTREBNO JE PROVERITI DA LI SE ON NALAZI U KRUGU OD 5km U ODNOSU NA PRVI DODATI UREDJAJ I AKO 
+          // JE UNUTAR KRUGA POTREBNO JE DODATI UREDJAJ U LISTU UREDJAJA I RACUNATI KORIGOVANU TEMPERATURU RACUNAJUCI TAJ
+          // UREDJAJ
+          //
+          if(trackedDevices.devices.length === 0){
+            const newDeviceData = new DeviceData(messageData.DeviceId);
+            trackedDevices.devices.push(newDeviceData);
+            trackedDevices.devices[0].latitude = messageData.IotData.latitude;
+            trackedDevices.devices[0].longitude = messageData.IotData.longitude;
+            newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
+          }
+          else {
+            //STA URADITI AKO NIJE PRVI UREDJAJ?
+            // Haversine izracunavanje rastojanja dve tacke na sferi
+            var R=6371000; //Radius of Earth
+            var phi_1 = trackedDevices.devices[0].latitude * Math.PI/180;
+            var phi_2 = messageData.IotData.latitude * Math.PI/180;
+            var delta_phi = (messageData.IotData.latitude - trackedDevices.devices[0].latitude)*Math.PI/180;
+            var delta_lambda = (messageData.IotData.longitude - trackedDevices.devices[0].longitude)*Math.PI/180;
+            var a = Math.pow(Math.sin(delta_phi/2.0),2)+Math.cos(phi_1)*Math.cos(phi_2)*Math.pow(delta_lambda/2.0,2);
+            var C = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+            var km = R*c/1000.0; // distance of new device in kilometers from the first device
+            if(km <= 5){
+              const newDeviceData = new DeviceData(messageData.DeviceId);
+              trackedDevices.devices.push(newDeviceData);
+              trackedDevices.devices[trackedDevices.devices.length].latitude = messageData.IotData.latitude;
+              trackedDevices.devices[trackedDevices.devices.length].longitude = messageData.IotData.longitude;
+              newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
+            }
+          }
+          // const newDeviceData = new DeviceData(messageData.DeviceId);
+          // trackedDevices.devices.push(newDeviceData);
+          // newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
         }
         //
         message = JSON.stringify(messageData);

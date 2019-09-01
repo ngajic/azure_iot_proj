@@ -75,30 +75,30 @@ $(document).ready(() => {
         pointHoverBackgroundColor: 'rgba(24, 120, 240, 1)',
         pointHoverBorderColor: 'rgba(24, 120, 240, 1)',
         spanGaps: true,
-      },
-      {
-        fill: false,
-        label: 'Temperature Raspberry PI',
-        yAxisID: 'Temperature 1',
-        borderColor: 'rgba(255, 204, 0, 1)',
-        pointBoarderColor: 'rgba(255, 204, 0, 1)',
-        backgroundColor: 'rgba(255, 204, 0, 0.4)',
-        pointHoverBackgroundColor: 'rgba(255, 204, 0, 1)',
-        pointHoverBorderColor: 'rgba(255, 204, 0, 1)',
-        spanGaps: true,
-      },
-  //    ADDED BY GAJSON
-      {
-        fill: false,
-        label: 'Temperature ESP32',
-        yAxisID: 'Temperature 2',
-        borderColor: 'rgba(0, 120, 0, 1)',
-        pointBoarderColor: 'rgba(0, 120, 0, 1)',
-        backgroundColor: 'rgba(0, 120, 0, 0.4)',
-        pointHoverBackgroundColor: 'rgba(0, 120, 0, 1)',
-        pointHoverBorderColor: 'rgba(0, 120, 0, 1)',
-        spanGaps: true,
-      }
+      }//,
+  //     {
+  //       fill: false,
+  //       label: 'Temperature Raspberry PI',
+  //       yAxisID: 'Temperature 1',
+  //       borderColor: 'rgba(255, 204, 0, 1)',
+  //       pointBoarderColor: 'rgba(255, 204, 0, 1)',
+  //       backgroundColor: 'rgba(255, 204, 0, 0.4)',
+  //       pointHoverBackgroundColor: 'rgba(255, 204, 0, 1)',
+  //       pointHoverBorderColor: 'rgba(255, 204, 0, 1)',
+  //       spanGaps: true,
+  //     },
+  // //    ADDED BY NENAD
+  //     {
+  //       fill: false,
+  //       label: 'Temperature ESP32',
+  //       yAxisID: 'Temperature 1',
+  //       borderColor: 'rgba(0, 120, 0, 1)',
+  //       pointBoarderColor: 'rgba(0, 120, 0, 1)',
+  //       backgroundColor: 'rgba(0, 120, 0, 0.4)',
+  //       pointHoverBackgroundColor: 'rgba(0, 120, 0, 1)',
+  //       pointHoverBorderColor: 'rgba(0, 120, 0, 1)',
+  //       spanGaps: true,
+  //     }
     ]
   };
 
@@ -138,20 +138,20 @@ $(document).ready(() => {
         },
       },
 
-      // ADDED BY GAJSON
-      {
-        id: 'Temperature 2',
-        type: 'linear',
-        scaleLabel: {
-          labelString: 'Temperature (ºC)',
-          display: true,
-        },
-        position: 'left',
-        ticks: {
-          suggestedMin: 0,
-          suggestedMax: 50,
-        },
-      }
+      // ADDED BY NENAD
+      // {
+      //   id: 'Temperature 2',
+      //   type: 'linear',
+      //   scaleLabel: {
+      //     labelString: 'Temperature (ºC)',
+      //     display: true,
+      //   },
+      //   position: 'left',
+      //   ticks: {
+      //     suggestedMin: 0,
+      //     suggestedMax: 50,
+      //   },
+      // }
     ]}
   };
 
@@ -259,11 +259,27 @@ $(document).ready(() => {
         trackedDevices.devices.push(newDeviceData);
         newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
        
+        var red = Math.round(Math.random()*255);
+        var green = Math.round(Math.random()*255);
+        var blue = Math.round(Math.random()*255);
+        const tmp = {
+          fill: false,
+          label: messageData.DeviceId,
+          yAxisID: 'Temperature 1',
+          borderColor: 'rgba('+ red +','+ green +','+ blue +', 1)',
+          pointBoarderColor: 'rgba('+ red +','+ green +','+ blue +', 1)',
+          backgroundColor: 'rgba('+ red +','+ green +','+ blue +', 0.4)',
+          pointHoverBackgroundColor: 'rgba('+ red +','+ green +','+ blue +', 1)',
+          pointHoverBorderColor: 'rgba('+ red +','+ green +','+ blue +', 1)',
+          spanGaps: true,
+        };
+
         if(deviceCounter === 0){
           chartData.labels = trackedDevices.devices[0].timeData;
           chartData.datasets[0].data = trackedDevices.devices[0].calcTemperatureData;
           ++deviceCounter;
         }
+        chartData.datasets.push(tmp);
         chartData.datasets[deviceCounter].data = trackedDevices.devices[deviceCounter - 1].temperatureData;
       
         // // add device to the UI list
