@@ -185,7 +185,7 @@ wss.broadcast = (message) => {
             var delta_lambda = (messageData.IotData.longitude - trackedDevices.devices[0].longitude)*Math.PI/180;
             var a = Math.pow(Math.sin(delta_phi/2.0),2)+Math.cos(phi_1)*Math.cos(phi_2)*Math.pow(delta_lambda/2.0,2);
             var C = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-            var km = R*c/1000.0; // distance of new device in kilometers from the first device
+            var km = R*C/1000.0; // distance of new device in kilometers from the first device
             if(km <= 5){
               const newDeviceData = new DeviceData(messageData.DeviceId);
               trackedDevices.devices.push(newDeviceData);
@@ -219,8 +219,10 @@ wss.broadcast = (message) => {
             message1.messageId = "Calculated Temperature";
             message1.data = JSON.stringify(payload1);
             console.log('Sending message: ' + message1.getData());
-            serviceClient.send(targetDevice1, message1, printResultFor('send'));
-            serviceClient.send(targetDevice2, message1, printResultFor('send'));
+            for(let i = 0; i<trackedDevices.devices.length; ++i){
+              // SENDING MESSAGES TO ALL CONNECTED DEVICES INSIDE RADIUS
+              serviceClient.send(trackedDevices.devices[i].deviceId, message1, printResultFor('send'));
+            }
           }
         });
         // ******************* //

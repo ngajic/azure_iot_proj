@@ -5,7 +5,7 @@ $(document).ready(() => {
   const protocol = document.location.protocol.startsWith('https') ? 'wss://' : 'ws://';
   const webSocket = new WebSocket(protocol + location.host);
   var deviceCounter = 0;
-
+  var mymap;
 // var Client = require('../azure-iothub').Client;
 // var Message = require('../azure-iot-common').Message;
 
@@ -278,7 +278,23 @@ $(document).ready(() => {
           chartData.labels = trackedDevices.devices[0].timeData;
           chartData.datasets[0].data = trackedDevices.devices[0].calcTemperatureData;
           ++deviceCounter;
+          mymap = L.map('mapid', {center: [44.78, 20.5], minZoom: 2, zoom: 13}); // create open street map
+          L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox.streets',
+            accessToken: 'pk.eyJ1IjoiZ2FqaWNuZW5hZDYiLCJhIjoiY2swMTAzbmdqMDkxYTNubGM2enpyYXNicyJ9.5UXxv_UMO-kLtujNsxCObQ'
+          }).addTo(mymap);
+          var circle = L.circle([messageData.IotData.latitude, messageData.IotData.longitude], {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.5,
+            radius: 5000
+          }).addTo(mymap);
         }
+        var marker = L.marker([messageData.IotData.latitude, messageData.IotData.longitude]).addTo(mymap);
+        marker.bindPopup("<b>"+ messageData.DeviceId +"</b>").openPopup();
+
         chartData.datasets.push(tmp);
         chartData.datasets[deviceCounter].data = trackedDevices.devices[deviceCounter - 1].temperatureData;
       
