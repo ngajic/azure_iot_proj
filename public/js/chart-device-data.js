@@ -119,8 +119,8 @@ $(document).ready(() => {
           },
           position: 'right',
           ticks: {
-            suggestedMin: 0,
-            suggestedMax: 50,
+            suggestedMin: 16,
+            suggestedMax: 36,
           },
         },
         
@@ -133,8 +133,8 @@ $(document).ready(() => {
         },
         position: 'left',
         ticks: {
-          suggestedMin: 0,
-          suggestedMax: 50,
+          suggestedMin: 16,
+          suggestedMax: 36,
         },
       },
 

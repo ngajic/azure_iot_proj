@@ -112,13 +112,13 @@ wss.broadcast = (message) => {
   
           existingDeviceData.mean = 0;
           for(let i=49; i>0; --i){
-            existingDeviceData.mean = existingDeviceData.mean + existingDeviceData.temperatureData[i] ;
+            existingDeviceData.mean = existingDeviceData.mean + existingDeviceData.temperatureData[i];
           }
           existingDeviceData.mean = existingDeviceData.mean + messageData.IotData.temperature;
           existingDeviceData.mean = existingDeviceData.mean/existingDeviceData.temperatureData.length;
-          // Calculating variance of existing device
-          messageData.mean = existingDeviceData.mean;
 
+          messageData.mean = existingDeviceData.mean;
+          // Calculating variance of existing device
           existingDeviceData.variance = 0;
           for(let i=49; i>0; --i){
             existingDeviceData.variance = existingDeviceData.variance + Math.pow((existingDeviceData.temperatureData[i]-existingDeviceData.mean),2);
@@ -139,7 +139,7 @@ wss.broadcast = (message) => {
           var help = 0;
           for(let i=0; i<trackedDevices.devices.length; ++i){
             if(trackedDevices.devices[i].variance === 0){
-              trackedDevices.devices[i].variance = 0.1;
+              trackedDevices.devices[i].variance = 0.0002;
             }
             help = help + 1/trackedDevices.devices[i].variance;
           }
@@ -157,7 +157,30 @@ wss.broadcast = (message) => {
           for(let i = 0; i<trackedDevices.devices.length; ++i){
               trackedDevices.devices[i].addData(messageData.MessageDate, trackedDevices.devices[i].lastTemperature, calcTmp)
             }
-            // existingDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, calcTmp);
+                  // Part of code which is sending message to all devices about calculated temperature
+          serviceClient.open(function (err) {
+            if (err) {
+              console.error('Could not connect: ' + err.message);
+            } else {
+              console.log('Service client connected');
+              serviceClient.getFeedbackReceiver(receiveFeedback);
+              const payload1 = {
+                MessageDate: messageData.MessageDate,
+                calcTmp: messageData.calcTmp, // ADDED
+              };
+              var message1 = new Message('Calculated Temperature');
+              message1.ack = 'full';
+              message1.messageId = "Calculated Temperature";
+              message1.data = JSON.stringify(payload1);
+              console.log('Sending message: ' + message1.getData());
+              for(let i = 0; i<trackedDevices.devices.length; ++i){
+                // SENDING MESSAGES TO ALL CONNECTED DEVICES INSIDE RADIUS
+                serviceClient.send(trackedDevices.devices[i].deviceId, message1, printResultFor('send'));
+              }
+            }
+          });
+          // ******************* //
+            
           }
   
            
@@ -189,8 +212,8 @@ wss.broadcast = (message) => {
             if(km <= 5){
               const newDeviceData = new DeviceData(messageData.DeviceId);
               trackedDevices.devices.push(newDeviceData);
-              trackedDevices.devices[trackedDevices.devices.length].latitude = messageData.IotData.latitude;
-              trackedDevices.devices[trackedDevices.devices.length].longitude = messageData.IotData.longitude;
+              trackedDevices.devices[trackedDevices.devices.length - 1].latitude = messageData.IotData.latitude;
+              trackedDevices.devices[trackedDevices.devices.length - 1].longitude = messageData.IotData.longitude;
               newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
             }
           }
@@ -199,33 +222,12 @@ wss.broadcast = (message) => {
           // newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
         }
         //
+        messageData.calcTmp = trackedDevices.devices[0].calcTemperatureData[49];
         message = JSON.stringify(messageData);
 
         console.log(`Broadcasting data ${message}`);
         client.send(message);
-        // Part of code which is sending message to all devices about calculated temperature
-        serviceClient.open(function (err) {
-          if (err) {
-            console.error('Could not connect: ' + err.message);
-          } else {
-            console.log('Service client connected');
-            serviceClient.getFeedbackReceiver(receiveFeedback);
-            const payload1 = {
-              MessageDate: messageData.MessageDate,
-              calcTmp: messageData.calcTmp, // ADDED
-            };
-            var message1 = new Message('Calculated Temperature');
-            message1.ack = 'full';
-            message1.messageId = "Calculated Temperature";
-            message1.data = JSON.stringify(payload1);
-            console.log('Sending message: ' + message1.getData());
-            for(let i = 0; i<trackedDevices.devices.length; ++i){
-              // SENDING MESSAGES TO ALL CONNECTED DEVICES INSIDE RADIUS
-              serviceClient.send(trackedDevices.devices[i].deviceId, message1, printResultFor('send'));
-            }
-          }
-        });
-        // ******************* //
+
       } catch (e) {
         console.error(e);
       }
