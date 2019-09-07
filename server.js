@@ -90,8 +90,8 @@ function printResultFor(op) {
 
 function receiveFeedback(err, receiver){
   receiver.on('message', function (msg) {
-    console.log('Feedback message:')
-    console.log(msg.getData().toString('utf-8'));
+    // console.log('Feedback message:') // Spam messages
+    // console.log(msg.getData().toString('utf-8'));
   });
 }
 
@@ -105,6 +105,7 @@ wss.broadcast = (message) => {
           return;
         }
         // to be continued...
+        messageData.draw = 0;
         const existingDeviceData = trackedDevices.findDevice(messageData.DeviceId);
 
         if (existingDeviceData) {
@@ -131,11 +132,13 @@ wss.broadcast = (message) => {
           // poslednja temperatura se dodaje u niz kada se dobije poruka od poslednjeg dodatog uredjaja
           // takodje ova temperatura se koristi za racunanje calcTemperature samo kada se dobije poruka poslednjeg dodatog uredjaja
           
-          messageData.calcTmp = trackedDevices.devices[0].calcTemperatureData[0];
+          messageData.calcTmp = trackedDevices.devices[0].calcTemperatureData[49];
           // podaci se dodaju kada se primi poruka poslednjeg dodatog uredjaja u trackedDevices 
           // takodje se tada racuna temperatura u zavisnosti od varijanse uredjaja
           if(trackedDevices.devices[trackedDevices.devices.length - 1].deviceId === existingDeviceData.deviceId){
             // Calculating weight...
+          messageData.draw = 1;
+          
           var help = 0;
           for(let i=0; i<trackedDevices.devices.length; ++i){
             if(trackedDevices.devices[i].variance === 0){
@@ -144,9 +147,6 @@ wss.broadcast = (message) => {
             help = help + 1/trackedDevices.devices[i].variance;
           }
           for(let i=0; i<trackedDevices.devices.length; ++i){
-            if(trackedDevices.devices[i].variance === 0){
-              trackedDevices.devices[i].variance = 0.1;
-            }
             trackedDevices.devices[i].weight = 1/(trackedDevices.devices[i].variance*help);
           }
           var calcTmp = 0;
@@ -210,11 +210,13 @@ wss.broadcast = (message) => {
             var C = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
             var km = R*C/1000.0; // distance of new device in kilometers from the first device
             if(km <= 5){
+              messageData.draw = 1;
               const newDeviceData = new DeviceData(messageData.DeviceId);
               trackedDevices.devices.push(newDeviceData);
               trackedDevices.devices[trackedDevices.devices.length - 1].latitude = messageData.IotData.latitude;
               trackedDevices.devices[trackedDevices.devices.length - 1].longitude = messageData.IotData.longitude;
               newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
+              console.log('New device in radius: ' + messageData.DeviceId);
             }
           }
           // const newDeviceData = new DeviceData(messageData.DeviceId);
@@ -222,7 +224,7 @@ wss.broadcast = (message) => {
           // newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
         }
         //
-        messageData.calcTmp = trackedDevices.devices[0].calcTemperatureData[49];
+        // messageData.calcTmp = trackedDevices.devices[0].calcTemperatureData[49]; 
         message = JSON.stringify(messageData);
 
         console.log(`Broadcasting data ${message}`);
@@ -251,6 +253,7 @@ const eventHubReader = new EventHubReader(iotHubConnectionString, eventHubConsum
         mean: 0, // ADDED
         variance: 0, // ADDED
         calcTmp: 0, // ADDED
+        draw: 0, // ADDED
       };
 
       wss.broadcast(JSON.stringify(payload));

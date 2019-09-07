@@ -226,7 +226,9 @@ $(document).ready(() => {
 
         // podaci se dodaju kada se primi poruka poslednjeg dodatog uredjaja u trackedDevices 
         // takodje se tada racuna temperatura u zavisnosti od varijanse uredjaja
-        if(trackedDevices.devices[trackedDevices.devices.length - 1].deviceId === existingDeviceData.deviceId){
+
+        // if(trackedDevices.devices[trackedDevices.devices.length - 1].deviceId === existingDeviceData.deviceId){
+           if(messageData.draw === 1){
           // Calculating weight...
         // var help = 0;
         // for(let i=0; i<trackedDevices.devices.length; ++i){
@@ -256,9 +258,9 @@ $(document).ready(() => {
       } else {
         
         const newDeviceData = new DeviceData(messageData.DeviceId);
-        trackedDevices.devices.push(newDeviceData);
         newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
-       
+        trackedDevices.devices.push(newDeviceData);
+
         var red = Math.round(Math.random()*255);
         var green = Math.round(Math.random()*255);
         var blue = Math.round(Math.random()*255);
