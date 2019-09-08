@@ -141,8 +141,8 @@ wss.broadcast = (message) => {
           
           var help = 0;
           for(let i=0; i<trackedDevices.devices.length; ++i){
-            if(trackedDevices.devices[i].variance === 0){
-              trackedDevices.devices[i].variance = 0.0002;
+            if(trackedDevices.devices[i].variance <= 0.01){
+              trackedDevices.devices[i].variance = 0.01;
             }
             help = help + 1/trackedDevices.devices[i].variance;
           }
@@ -206,7 +206,7 @@ wss.broadcast = (message) => {
             var phi_2 = messageData.IotData.latitude * Math.PI/180;
             var delta_phi = (messageData.IotData.latitude - trackedDevices.devices[0].latitude)*Math.PI/180;
             var delta_lambda = (messageData.IotData.longitude - trackedDevices.devices[0].longitude)*Math.PI/180;
-            var a = Math.pow(Math.sin(delta_phi/2.0),2)+Math.cos(phi_1)*Math.cos(phi_2)*Math.pow(delta_lambda/2.0,2);
+            var a = Math.pow(Math.sin(delta_phi/2.0),2)+Math.cos(phi_1)*Math.cos(phi_2)*Math.pow(Math.sin(delta_lambda/2.0),2);
             var C = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
             var km = R*C/1000.0; // distance of new device in kilometers from the first device
             if(km <= 5){
@@ -217,6 +217,7 @@ wss.broadcast = (message) => {
               trackedDevices.devices[trackedDevices.devices.length - 1].longitude = messageData.IotData.longitude;
               newDeviceData.addData(messageData.MessageDate, messageData.IotData.temperature, messageData.IotData.temperature);
               console.log('New device in radius: ' + messageData.DeviceId);
+              console.log('Kilometres: ' + km);
             }
           }
           // const newDeviceData = new DeviceData(messageData.DeviceId);
